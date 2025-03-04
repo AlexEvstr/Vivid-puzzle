@@ -13,12 +13,15 @@ public class BlockEvents : EventTrigger {
     enum MovementType { LEFT = 0, RIGHT, DOWN, UP };
     float onBeginX;
     float onBeginY;
+    private GameAudioController _gameAudioController;
 
     void Awake() {
         gameWon.AddListener(ScoreManager.instance.TimerStop);
         gameStarted.AddListener(ScoreManager.instance.TimerStart);
         //gameWon.AddListener(ScoreManager.instance.GameWon);
         gameWon.AddListener(UIManager.instance.ShowWinScreen);
+        _gameAudioController = FindObjectOfType<GameAudioController>();
+
     }
 
     public override void OnBeginDrag(PointerEventData eventData) {
@@ -28,6 +31,7 @@ public class BlockEvents : EventTrigger {
 
     public override void OnEndDrag(PointerEventData eventData) {
         CheckTable(CheckMovement(onBeginX, onBeginY, eventData.position.x, eventData.position.y));
+        _gameAudioController.PlayDragSound();
     }
 
     void CheckTable(MovementType movement) {

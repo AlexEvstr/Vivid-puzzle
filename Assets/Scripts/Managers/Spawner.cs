@@ -29,6 +29,9 @@ public class Spawner : MonoBehaviour {
     public int[,] numbers;
     [SerializeField] private List<LevelSprites> _imagePartsPerLevel = new List<LevelSprites>();
     private List<Sprite> currentImageParts;
+    [SerializeField] private Image _winImage;
+    [SerializeField] private Image _targetImage;
+    [SerializeField] private Sprite[] _fullImages;
 
     void Awake() {
         if(instance == null) {
@@ -42,7 +45,8 @@ public class Spawner : MonoBehaviour {
         }
         if (currentLevel < 6) gameSize = 3;
         else gameSize = 4;
-
+        _winImage.sprite = _fullImages[currentLevel];
+        _targetImage.sprite = _fullImages[currentLevel];
         SetDefaultValues();
     }
     void Start () {
