@@ -1,175 +1,159 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-public class ScoreManager : MonoBehaviour {
-
+public class ScoreManager : MonoBehaviour
+{
     public static ScoreManager instance = null;
 
     public bool timerStart = false;
-    public bool timeHighscores = true;
-    int sizeOfHighscores = 5;
-    public GameObject textPrefab;
-    public GameObject timeHolder;
-    public GameObject movesHolder;
+    private int maxScores = 7; // Количество ячеек
+    public GameObject[] scoreCells; // Ячейки для хранения лучших результатов (7 штук)
 
-    int moves = 0;
-    float timer = 0;
-    List<float> timeScore;
-    List<GameObject> spawnedScores;
+    private int currentLevel;
+    private float timer = 0;
+    private List<float> timeScores;
+    private List<string> dateScores;
 
-	void Start () {
-		if(instance == null) {
+    void Start()
+    {
+        if (instance == null)
+        {
             instance = this;
         }
-        sizeOfHighscores = 5;
-        timeScore = new List<float>();
-        spawnedScores = new List<GameObject>();
-        timeScore = GetTimeListFromPrefs();
-	}
 
-    void Update() {
-        if (timerStart) {
-            timer += Time.deltaTime;
-        }    
+        currentLevel = PlayerPrefs.GetInt("LevelCurrent", 0); // Получаем текущий уровень
+        timeScores = new List<float>();
+        dateScores = new List<string>();
+
+        LoadScores(); // Загружаем сохраненные результаты
+        UpdateScoreDisplay(); // Обновляем отображение
     }
 
-    public void TimerStart() {
+    void Update()
+    {
+        if (timerStart)
+        {
+            timer += Time.deltaTime;
+        }
+    }
+
+    public void TimerStart()
+    {
         timerStart = true;
     }
-    
-    public void TimerStop() {
+
+    public void TimerStop()
+    {
         timerStart = false;
     }
-    
-    public void AddMove() {
-        moves++;
+
+    public void RestartScore()
+    {
+        timerStart = false;
+        timer = 0;
     }
 
-    public int GetMoves() {
-        return moves;
-    }
-    
-    public float GetTimer() {
+    public float GetTimer()
+    {
         return Mathf.Round(timer);
     }
 
-    public void RestartScore() {
-        timerStart = false;
-        timer = 0;
-        moves = 0;
-    }
+    public void SaveNewTimeScore()
+    {
+        float roundedTime = Mathf.Round(timer);
+        string formattedDate = DateTime.Now.ToString("dd.MM.yyyy");
 
-    public void ChangeHighscore(bool isTimeScoreOn) {
-        timeHighscores = isTimeScoreOn;
-        ClearHighscore();
-    }
+        timeScores.Add(roundedTime);
+        dateScores.Add(formattedDate);
 
-    public void SaveNewTimeScore(float time) {
-        timeScore.Add(time);
-        timeScore.Sort();
-        if (timeScore.Count > sizeOfHighscores) {
-            timeScore.RemoveAt(timeScore.Count - 1);
-        }
-        SaveTimeListToPrefs();
-        for(int i = 0; i < spawnedScores.Count; i++) {
-            Destroy(spawnedScores[i]);
-        }
-        spawnedScores.Clear();
-        timeScore.Clear();
-        timeScore = GetTimeListFromPrefs();
-    }
-
-    public void SaveTimeListToPrefs() {
-       for(int i = 0; i < timeScore.Count; i++) {
-            PlayerPrefs.SetFloat("ScoreTime" + Spawner.instance.gameSize + i, timeScore[i]);
-        }
-    }
-
-    public void ClearHighscore() {
-        for (int i = 0; i < spawnedScores.Count; i++) {
-            Destroy(spawnedScores[i]);
-        }
-        spawnedScores.Clear();
-        timeScore.Clear();
-        if (timeHighscores) {
-            timeScore = GetTimeListFromPrefs();
-        } else {
-            timeScore = GetMovesListFromPrefs();
-        }
-    }
-
-    public List<float> GetTimeListFromPrefs() {
-        int i = 0;
-        float tempValue;
-        List<float> newList = new List<float>();
-        while(PlayerPrefs.HasKey("ScoreTime" + Spawner.instance.gameSize + i)) {
-            tempValue = PlayerPrefs.GetFloat("ScoreTime" + Spawner.instance.gameSize + i);
-            newList.Add(tempValue);
-            spawnedScores.Add(Instantiate(textPrefab, timeHolder.transform));
-            spawnedScores[i].GetComponent<TextMeshProUGUI>().text = string.Concat(System.Math.Round(tempValue,2),"s");
-            i++;
-        }
-        return newList;
-    }
-
-    public List<float> GetMovesListFromPrefs() {
-        int i = 0;
-        float tempValue;
-        List<float> newList = new List<float>();
-        while (PlayerPrefs.HasKey("ScoreMoves" + Spawner.instance.gameSize + i)) {
-            tempValue = PlayerPrefs.GetFloat("ScoreMoves" + Spawner.instance.gameSize + i);
-            newList.Add(tempValue);
-            spawnedScores.Add(Instantiate(textPrefab, timeHolder.transform));
-            spawnedScores[i].GetComponent<TextMeshProUGUI>().text = tempValue.ToString();
-            i++;
-        }
-        return newList;
-    }
-
-    public void SaveMovesListToPrefs() {
-        for (int i = 0; i < timeScore.Count; i++) {
-            PlayerPrefs.SetFloat("ScoreMoves" + Spawner.instance.gameSize + i, timeScore[i]);
-        }
-    }
-
-    public void SaveNewMovesScore(float time) {
-        timeScore.Add(time);
-        timeScore.Sort();
-        if (timeScore.Count > sizeOfHighscores) {
-            timeScore.RemoveAt(timeScore.Count - 1);
-        }
-        SaveMovesListToPrefs();
-        for (int i = 0; i < spawnedScores.Count; i++) {
-            Destroy(spawnedScores[i]);
-        }
-        spawnedScores.Clear();
-        timeScore.Clear();
-        timeScore = GetMovesListFromPrefs();
-    }
-
-    public bool IsBetterScore(float time) {
-        bool temp = false;
-        for (int i = 0; i < timeScore.Count; i++) {
-            if(timeScore[i] > time) {
-                temp = true;
+        // Сортировка по времени (лучшее время — наверху)
+        for (int i = 0; i < timeScores.Count - 1; i++)
+        {
+            for (int j = i + 1; j < timeScores.Count; j++)
+            {
+                if (timeScores[i] > timeScores[j])
+                {
+                    (timeScores[i], timeScores[j]) = (timeScores[j], timeScores[i]);
+                    (dateScores[i], dateScores[j]) = (dateScores[j], dateScores[i]);
+                }
             }
         }
-            if (timeScore.Count <= Spawner.instance.gameSize) {
-            temp = true;
+
+        // Ограничиваем список 7 результатами
+        while (timeScores.Count > maxScores)
+        {
+            timeScores.RemoveAt(timeScores.Count - 1);
+            dateScores.RemoveAt(dateScores.Count - 1);
         }
-        return temp;
+
+        SaveScores();
+        UpdateScoreDisplay();
     }
 
-    public void GameWon() {
-        timeScore = GetTimeListFromPrefs();
-        if (IsBetterScore(timer)) {
-            SaveNewTimeScore(timer);
+    private void SaveScores()
+    {
+        for (int i = 0; i < timeScores.Count; i++)
+        {
+            PlayerPrefs.SetFloat($"Level_{currentLevel}_ScoreTime_{i}", timeScores[i]);
+            PlayerPrefs.SetString($"Level_{currentLevel}_ScoreDate_{i}", dateScores[i]);
         }
-        timeScore = GetMovesListFromPrefs();
-        if (IsBetterScore(moves)) {
-            SaveNewMovesScore(moves);
+        PlayerPrefs.Save();
+    }
+
+    private void LoadScores()
+    {
+        timeScores.Clear();
+        dateScores.Clear();
+
+        for (int i = 0; i < maxScores; i++)
+        {
+            if (PlayerPrefs.HasKey($"Level_{currentLevel}_ScoreTime_{i}"))
+            {
+                timeScores.Add(PlayerPrefs.GetFloat($"Level_{currentLevel}_ScoreTime_{i}"));
+                dateScores.Add(PlayerPrefs.GetString($"Level_{currentLevel}_ScoreDate_{i}"));
+            }
         }
-        ClearHighscore();
+    }
+
+    private void UpdateScoreDisplay()
+    {
+        for (int i = 0; i < maxScores; i++)
+        {
+            Transform timeText = scoreCells[i].transform.GetChild(0);
+            Transform dateText = scoreCells[i].transform.GetChild(1);
+
+            if (i < timeScores.Count)
+            {
+                timeText.GetComponent<TextMeshProUGUI>().text = FormatTime(timeScores[i]);
+                dateText.GetComponent<TextMeshProUGUI>().text = dateScores[i];
+            }
+            else
+            {
+                timeText.GetComponent<TextMeshProUGUI>().text = "0:00";
+                dateText.GetComponent<TextMeshProUGUI>().text = "---";
+            }
+        }
+    }
+
+    private string FormatTime(float timeInSeconds)
+    {
+        int minutes = Mathf.FloorToInt(timeInSeconds / 60);
+        int seconds = Mathf.FloorToInt(timeInSeconds % 60);
+        return minutes > 9 ? $"{minutes:00}:{seconds:00}" : $"{minutes}:{seconds:00}";
+    }
+
+    public void ResetScores()
+    {
+        for (int i = 0; i < maxScores; i++)
+        {
+            PlayerPrefs.DeleteKey($"Level_{currentLevel}_ScoreTime_{i}");
+            PlayerPrefs.DeleteKey($"Level_{currentLevel}_ScoreDate_{i}");
+        }
+        PlayerPrefs.Save();
+
+        LoadScores();
+        UpdateScoreDisplay();
     }
 }

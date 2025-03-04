@@ -17,7 +17,7 @@ public class BlockEvents : EventTrigger {
     void Awake() {
         gameWon.AddListener(ScoreManager.instance.TimerStop);
         gameStarted.AddListener(ScoreManager.instance.TimerStart);
-        gameWon.AddListener(ScoreManager.instance.GameWon);
+        //gameWon.AddListener(ScoreManager.instance.GameWon);
         gameWon.AddListener(UIManager.instance.ShowWinScreen);
     }
 
@@ -43,7 +43,7 @@ public class BlockEvents : EventTrigger {
                                 int temp = Spawner.instance.instances[i, j].GetNumber();
                                 Spawner.instance.instances[i, j].SetNumber(Spawner.instance.instances[i + 1, j].GetNumber());
                                 Spawner.instance.instances[i + 1, j].SetNumber(temp);
-                                ScoreManager.instance.AddMove();
+                                //ScoreManager.instance.AddMove();
                             }
                             break;
                         case MovementType.UP:
@@ -54,7 +54,7 @@ public class BlockEvents : EventTrigger {
                                 int temp = Spawner.instance.instances[i, j].GetNumber();
                                 Spawner.instance.instances[i, j].SetNumber(Spawner.instance.instances[i - 1, j].GetNumber());
                                 Spawner.instance.instances[i - 1, j].SetNumber(temp);
-                                ScoreManager.instance.AddMove();
+                                //ScoreManager.instance.AddMove();
                             }
                             break;
                         case MovementType.LEFT:
@@ -65,7 +65,7 @@ public class BlockEvents : EventTrigger {
                                 int temp = Spawner.instance.instances[i, j].GetNumber();
                                 Spawner.instance.instances[i, j].SetNumber(Spawner.instance.instances[i, j - 1].GetNumber());
                                 Spawner.instance.instances[i, j - 1].SetNumber(temp);
-                                ScoreManager.instance.AddMove();
+                                //ScoreManager.instance.AddMove();
                             }
                             break;
                         case MovementType.RIGHT:
@@ -76,7 +76,7 @@ public class BlockEvents : EventTrigger {
                                 int temp = Spawner.instance.instances[i, j].GetNumber();
                                 Spawner.instance.instances[i, j].SetNumber(Spawner.instance.instances[i, j + 1].GetNumber());
                                 Spawner.instance.instances[i, j + 1].SetNumber(temp);
-                                ScoreManager.instance.AddMove();
+                                //ScoreManager.instance.AddMove();
                             }
                             break;
                         default: {
@@ -87,7 +87,7 @@ public class BlockEvents : EventTrigger {
                                     int temp = Spawner.instance.instances[i, j].GetNumber();
                                     Spawner.instance.instances[i, j].SetNumber(Spawner.instance.instances[i - 1, j].GetNumber());
                                     Spawner.instance.instances[i - 1, j].SetNumber(temp);
-                                    ScoreManager.instance.AddMove();
+                                    //ScoreManager.instance.AddMove();
                                 }
                             } break;
                     }

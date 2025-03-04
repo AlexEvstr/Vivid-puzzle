@@ -27,14 +27,21 @@ public class Spawner : MonoBehaviour {
     float sizeOfBlock = 0;
     public Block[,] instances;
     public int[,] numbers;
-    [SerializeField] private Sprite[] _imageParts;
+    [SerializeField] private List<LevelSprites> _imagePartsPerLevel = new List<LevelSprites>();
+    private List<Sprite> currentImageParts;
 
     void Awake() {
         if(instance == null) {
             instance = this;
         }
 
-        gameSize = PlayerPrefs.GetInt("GameSize", 3);
+        int currentLevel = PlayerPrefs.GetInt("LevelCurrent", 0);
+        if (currentLevel < _imagePartsPerLevel.Count)
+        {
+            currentImageParts = _imagePartsPerLevel[currentLevel].sprites;
+        }
+        if (currentLevel < 6) gameSize = 3;
+        else gameSize = 4;
 
         SetDefaultValues();
     }
@@ -54,7 +61,7 @@ public class Spawner : MonoBehaviour {
             instances[row, column] = new Block(lastXvalue, lastYvalue,
             tempGameObject = Instantiate(blockPrefab, new Vector3(lastXvalue, lastYvalue, 0),
             Quaternion.identity, this.transform), tempGameObject.GetComponentInChildren<TextMeshProUGUI>(), tempGameObject.GetComponent<Image>().sprite);
-            if (i < (gameSize * gameSize)-1) tempGameObject.GetComponent<Image>().sprite = _imageParts[i];
+            if (i < (gameSize * gameSize)-1) tempGameObject.GetComponent<Image>().sprite = currentImageParts[i];
             lastXvalue = lastXvalue + minSpacing + sizeOfBlock;
             column++;
             
@@ -170,4 +177,10 @@ public class Spawner : MonoBehaviour {
         SetNumbers();
         DeleteLastNumber();
     }
+}
+
+[System.Serializable]
+public class LevelSprites
+{
+    public List<Sprite> sprites;
 }
